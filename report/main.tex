@@ -121,10 +121,6 @@
         \item \texttt{protected Api()} --- пустой конструктор для Hibernate;
         \item \texttt{protected Api(String name, String baseUrl)} --- инициализирует родительские поля \texttt{name} и \texttt{baseUrl}.
     \end{itemize}
-    \item Геттеры/сеттеры:
-    \begin{itemize}
-        \item Для полей \texttt{id}, \texttt{name}, \texttt{baseUrl}, \texttt{organization} используются Lombok-аннотации \texttt{@Getter} и \texttt{@Setter}.
-    \end{itemize}
 \end{itemize}
 
 \textbf{Класс \texttt{VkApi extends Api}:}
@@ -138,7 +134,7 @@
     \end{itemize}
     \item Методы:
     \begin{itemize}
-        \item \texttt{public String initialize()} --- наследует родительское поведение и может вызываться через API;
+        \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями VK (\texttt{name}, \texttt{baseUrl}, \texttt{version}, \texttt{token});
         \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
         \item \texttt{public List<String> getText()} --- возвращает список текстов постов;
         \item \texttt{public List<Integer> getLike()} --- возвращает список значений лайков.
@@ -149,9 +145,9 @@
         \item \texttt{public VkApi(String version, String token)} --- создаёт VK API с явными \texttt{version} и \texttt{token}, а \texttt{name/baseUrl} задаёт как \texttt{"VK"} и \texttt{"https://api.vk.com/method"};
         \item \texttt{public VkApi(String token)} --- создаёт VK API с токеном и версией по умолчанию \texttt{"5.199"}.
     \end{itemize}
-    \item Геттеры/сеттеры:
+    \item Дополнительно:
     \begin{itemize}
-        \item Для полей \texttt{version}, \texttt{token}, \texttt{posts} используются Lombok-аннотации \texttt{@Getter} и \texttt{@Setter}.
+        \item Для обновления полей используется предметный метод \texttt{updateVkData(...)}.
     \end{itemize}
 \end{itemize}
 
@@ -166,7 +162,7 @@
     \end{itemize}
     \item Методы:
     \begin{itemize}
-        \item \texttt{public String initialize()} --- наследует родительское поведение и может вызываться через API;
+        \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями TG (\texttt{name}, \texttt{baseUrl}, \texttt{botToken}, \texttt{chatId});
         \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
         \item \texttt{public List<String> sendMessage()} --- возвращает тестовые данные отправки сообщения;
         \item \texttt{public List<String> sendPhoto()} --- возвращает тестовые данные отправки фото.
@@ -177,9 +173,9 @@
         \item \texttt{public TgApi(String botToken, long chatId)} --- создаёт Telegram API с токеном и чатом, а \texttt{name/baseUrl} задаёт как \texttt{"TG"} и \texttt{"https://api.telegram.org/bot"};
         \item \texttt{public TgApi(String botToken)} --- создаёт Telegram API только с токеном, \texttt{chatId} устанавливается в \texttt{0L}.
     \end{itemize}
-    \item Геттеры/сеттеры:
+    \item Дополнительно:
     \begin{itemize}
-        \item Для полей \texttt{botToken}, \texttt{chatId}, \texttt{payloads} используются Lombok-аннотации \texttt{@Getter} и \texttt{@Setter}.
+        \item Для обновления полей используется предметный метод \texttt{updateTgData(...)}.
     \end{itemize}
 \end{itemize}
 
@@ -233,12 +229,8 @@
     \end{itemize}
 \end{itemize}
 
-\subsection*{ООП в проекте}
-\begin{itemize}
-    \item Инкапсуляция: поля сущностей скрыты, доступ к ним осуществляется через геттеры/сеттеры (Lombok \texttt{@Getter/@Setter});
-    \item Наследование: \texttt{VkApi} и \texttt{TgApi} наследуются от базового класса \texttt{Api};
-    \item Полиморфизм: вызов родительских методов \texttt{initialize()} и \texttt{fetchData(...)} выполняется для разных наследников через единый интерфейс API.
-\end{itemize}
+\newpage
+\clearpage
 
 \subsection*{Описание API:}
 
@@ -249,7 +241,11 @@
     \item \texttt{POST /api/vkapis/full} --- создать VK API через конструктор \texttt{(version, token)};
     \item \texttt{POST /api/vkapis/token} --- создать VK API через конструктор \texttt{(token)};
     \item \texttt{POST /api/vkapis/default} --- создать VK API со значениями по умолчанию;
+    \item \texttt{PUT /api/vkapis/\{id\}} --- обновить VK API-запись по id (версия и токен);
     \item \texttt{DELETE /api/vkapis/\{id\}} --- удалить VK API-запись по id;
+    \item \texttt{GET /api/vkapis/\{id\}/posts} --- получить список постов конкретного VK API;
+    \item \texttt{POST /api/vkapis/\{id\}/posts} --- добавить пост к конкретному VK API;
+    \item \texttt{DELETE /api/vkapis/posts/\{postId\}} --- удалить пост по id;
     \item \texttt{GET /api/vkapis/\{id\}/initialize} --- вызвать родительский метод \texttt{initialize()};
     \item \texttt{GET /api/vkapis/\{id\}/fetchdata/\{command\}} --- вызвать родительский метод \texttt{fetchData(command)};
     \item \texttt{GET /api/vkapis/\{id\}/run/\{command\}} --- вызвать предметные методы VK (\texttt{getText}, \texttt{getLike}).
@@ -262,7 +258,11 @@
     \item \texttt{POST /api/tgapis/full} --- создать TG API через конструктор \texttt{(botToken, chatId)};
     \item \texttt{POST /api/tgapis/token} --- создать TG API через конструктор \texttt{(botToken)};
     \item \texttt{POST /api/tgapis/chat} --- создать TG API по \texttt{chatId}, при этом \texttt{botToken} выставляется в \texttt{"NULL"};
+    \item \texttt{PUT /api/tgapis/\{id\}} --- обновить TG API-запись по id (botToken и chatId);
     \item \texttt{DELETE /api/tgapis/\{id\}} --- удалить TG API-запись по id;
+    \item \texttt{GET /api/tgapis/\{id\}/payloads} --- получить список данных конкретного TG API;
+    \item \texttt{POST /api/tgapis/\{id\}/payloads} --- добавить данные к конкретному TG API;
+    \item \texttt{DELETE /api/tgapis/payloads/\{payloadId\}} --- удалить данные по id;
     \item \texttt{GET /api/tgapis/\{id\}/initialize} --- вызвать родительский метод \texttt{initialize()};
     \item \texttt{GET /api/tgapis/\{id\}/fetchdata/\{command\}} --- вызвать родительский метод \texttt{fetchData(command)};
     \item \texttt{GET /api/tgapis/\{id\}/run/\{command\}} --- вызвать предметные методы TG (\texttt{sendMessage}, \texttt{sendPhoto}).
@@ -273,7 +273,9 @@
 Интерфейс реализован на React и включает:
 \begin{itemize}
     \item формы добавления VK и TG API записей;
-    \item форма редактирования записей по ID;
+    \item форму редактирования записей по ID (PUT для VK и TG);
+    \item форму добавления связанных данных (VK post и TG данные);
+    \item вывод списков связанных данных и удаление по кнопке;
     \item кнопки удаления записей;
     \item блок вызова методов предметной области (\texttt{Initialize}, \texttt{FetchData}, \texttt{run(command)}) через выпадающие списки;
     \item блок отображения результата вызова методов и ошибок;
@@ -289,14 +291,10 @@
 \section*{\normalsize ERD диаграмма}
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=\textwidth]{1.png}
+    \includegraphics[width=0.8\textwidth]{1.png}
     \caption*{Рисунок \arabic{imgcnt} -- ERD диаграмма}
     \stepcounter{imgcnt}
 \end{figure}
-
-
-\newpage
-\clearpage
 
 \section*{\normalsize Диаграмма классов}
 \begin{figure}[!h]
@@ -313,10 +311,8 @@
 
 \section*{\normalsize Вывод}
 
-Цель лабораторной работы достигнута, а задание выполнено полностью: разработано web-приложение на Java для предметной области VK и Telegram API с хранением данных в PostgreSQL и работой через Hibernate/JPA. CRUD-операции реализованы через \texttt{CrudRepository/JpaRepository}, а структура БД включает связанные таблицы и связи не только по наследованию.\
+В рамках выполнения лабораторной работы было разработано web-приложение на Java для предметной области VK и Telegram API с хранением данных в PostgreSQL и работой через Hibernate. CRUD-операции реализованы через \texttt{CrudRepository}, а структура БД включает связанные таблицы и связи не только по наследованию. \\
 
-В процессе выполнения работы я научилась описывать модель предметной области через JPA-аннотации, настраивать наследование сущностей (\texttt{JOINED}), строить связи \texttt{one-to-many/many-to-one}, работать с сервисным и контроллерным слоями Spring Boot и вызывать методы предметной области через HTTP API.\
-
-Основные сложности возникли при работе с Hibernate: корректная настройка связей между сущностями, требования к конструкторам по умолчанию, а также понимание того, как JPA автоматически формирует таблицы и внешние ключи. После настройки аннотаций и проверки схемы в PostgreSQL эти проблемы были решены.
+В процессе выполнения работы были приобретены навыки описания модель предметной области через JPA-аннотации и работы с сервисным и контроллерным слоями Spring.\\
 
 \end{document}
