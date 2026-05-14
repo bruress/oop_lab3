@@ -1,6 +1,7 @@
 package com.oop.lab3.controller;
 import com.oop.lab3.model.TgApi;
 import com.oop.lab3.model.TgPayload;
+import com.oop.lab3.repository.TgApiRepository;
 import com.oop.lab3.service.TgApiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,23 +16,26 @@ public class TgApiController {
 
     // ссылку на сервис, тк бизнес логика там
     private final TgApiService tgApiService;
+    // репозиторий для чтения в сервисе
+    private final TgApiRepository tgApiRepository;
 
     // конструктор сохранения сервиса для использования его в методах контроллера
-    public TgApiController(TgApiService tgApiService) {
+    public TgApiController(TgApiService tgApiService, TgApiRepository tgApiRepository) {
         this.tgApiService = tgApiService;
+        this.tgApiRepository = tgApiRepository;
     }
 
 
     // get - список всех tg api
     @GetMapping
-    public List<TgApi> getAll() {
-        return tgApiService.getAll();
+    public List<TgApi> getAllTgApis() {
+        return tgApiRepository.findAll();
     }
 
     // get - по id
     @GetMapping("/{id}")
-    public ResponseEntity<TgApi> getById(@PathVariable long id) {
-        return tgApiService.getById(id)
+    public ResponseEntity<TgApi> getTgApiById(@PathVariable long id) {
+        return tgApiRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -75,7 +79,7 @@ public class TgApiController {
     // инициализация родителя у поста
     @GetMapping("/{id}/initialize")
     public ResponseEntity<String> initialize(@PathVariable long id) {
-        Optional<String> result = tgApiService.initialize(id);
+        Optional<String> result = tgApiRepository.findById(id).map(TgApi::initialize);
         return result.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -83,7 +87,7 @@ public class TgApiController {
     // fetch у родителя у поста
     @GetMapping("/{id}/fetchdata/{command}")
     public ResponseEntity<String> fetchData(@PathVariable long id, @PathVariable String command) {
-        Optional<String> result = tgApiService.fetchData(id, command);
+        Optional<String> result = tgApiRepository.findById(id).map(api -> api.fetchData(command));
         return result.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

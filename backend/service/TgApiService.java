@@ -22,16 +22,6 @@ public class TgApiService {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    // получить всех tgAPI
-    public List<TgApi> getAll() {
-        return tgApiRepository.findAll();
-    }
-
-    // по id
-    public Optional<TgApi> getById(long id) {
-        return tgApiRepository.findById(id);
-    }
-
     // пустой конструктор
     public long createFull(String botToken, long chatId) {
         String safeToken = botToken == null ? "" : botToken;
@@ -110,16 +100,6 @@ public class TgApiService {
             }
         }
         return false;
-    }
-
-    // родительская инициализация
-    public Optional<String> initialize(long id) {
-        return tgApiRepository.findById(id).map(TgApi::initialize);
-    }
-
-    // родительская загрузка данных
-    public Optional<String> fetchData(long id, String command) {
-        return tgApiRepository.findById(id).map(api -> api.fetchData(command));
     }
 
     // вызвать предметный метод по команде

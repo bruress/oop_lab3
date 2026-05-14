@@ -1,6 +1,7 @@
 package com.oop.lab3.controller;
 import com.oop.lab3.model.VkApi;
 import com.oop.lab3.model.VkPost;
+import com.oop.lab3.repository.VkApiRepository;
 import com.oop.lab3.service.VkApiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,22 +16,25 @@ public class VkApiController {
 
     // ссылку на сервис, тк бизнес логика там
     private final VkApiService vkApiService;
+    // репозиторий для чтения в сервисе
+    private final VkApiRepository vkApiRepository;
 
     // конструктор сохранения сервиса для использования его в методах контроллера
-    public VkApiController(VkApiService vkApiService) {
+    public VkApiController(VkApiService vkApiService, VkApiRepository vkApiRepository) {
         this.vkApiService = vkApiService;
+        this.vkApiRepository = vkApiRepository;
     }
 
     // get - список всех vk api
     @GetMapping
-    public List<VkApi> getAll() {
-        return vkApiService.getAll();
+    public List<VkApi> getAllVkApis() {
+        return vkApiRepository.findAll();
     }
 
     // get - по id
     @GetMapping("/{id}")
-    public ResponseEntity<VkApi> getById(@PathVariable long id) {
-        return vkApiService.getById(id)
+    public ResponseEntity<VkApi> getVkApiById(@PathVariable long id) {
+        return vkApiRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -74,7 +78,7 @@ public class VkApiController {
     // инициализация родителя у поста
     @GetMapping("/{id}/initialize")
     public ResponseEntity<String> initialize(@PathVariable long id) {
-        Optional<String> result = vkApiService.initialize(id);
+        Optional<String> result = vkApiRepository.findById(id).map(VkApi::initialize);
         return result.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -82,7 +86,7 @@ public class VkApiController {
     // fetch у родителя у поста
     @GetMapping("/{id}/fetchdata/{command}")
     public ResponseEntity<String> fetchData(@PathVariable long id, @PathVariable String command) {
-        Optional<String> result = vkApiService.fetchData(id, command);
+        Optional<String> result = vkApiRepository.findById(id).map(api -> api.fetchData(command));
         return result.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

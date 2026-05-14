@@ -30,11 +30,6 @@ public class OrganizationService {
         this.tgApiRepository = tgApiRepository;
     }
 
-    // получить все организации
-    public List<Organization> getAll() {
-        return organizationRepository.findAll();
-    }
-
     // создать организацию по имени
     public Organization create(String name) {
         String safeName = (name == null || name.isBlank()) ? "Новая организация" : name;

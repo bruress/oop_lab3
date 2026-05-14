@@ -1,6 +1,7 @@
 package com.oop.lab3.controller;
 
 import com.oop.lab3.model.Organization;
+import com.oop.lab3.repository.OrganizationRepository;
 import com.oop.lab3.service.OrganizationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +17,19 @@ public class OrganizationController {
 
     // ссылку на сервис, тк бизнес логика там
     private final OrganizationService organizationService;
+    // репозиторий для чтения в сервисе
+    private final OrganizationRepository organizationRepository;
 
     // конструктор сохранения сервиса для использования его в методах контроллера
-    public OrganizationController(OrganizationService organizationService) {
+    public OrganizationController(OrganizationService organizationService, OrganizationRepository organizationRepository) {
         this.organizationService = organizationService;
+        this.organizationRepository = organizationRepository;
     }
 
     // get - список всех организаций
     @GetMapping
-    public List<Organization> getAll() {
-        return organizationService.getAll();
+    public List<Organization> getAllOrganizations() {
+        return organizationRepository.findAll();
     }
 
     // post для создания организации по имени

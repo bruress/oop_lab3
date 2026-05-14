@@ -22,16 +22,6 @@ public class VkApiService {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    // получение всех vkAPI
-    public List<VkApi> getAll() {
-        return vkApiRepository.findAll();
-    }
-
-    // по айди
-    public Optional<VkApi> getById(long id) {
-        return vkApiRepository.findById(id);
-    }
-
     // создать через пустой генератор
     public long createFull(String version, String token) {
         String safeVersion = (version == null || version.isBlank()) ? "5.199" : version;
@@ -111,16 +101,6 @@ public class VkApiService {
             }
         }
         return false;
-    }
-
-    // родительская инициализация
-    public Optional<String> initialize(long id) {
-        return vkApiRepository.findById(id).map(VkApi::initialize);
-    }
-
-    // родительская fetchData
-    public Optional<String> fetchData(long id, String command) {
-        return vkApiRepository.findById(id).map(api -> api.fetchData(command));
     }
 
     // вызвать предметный метод по команде
