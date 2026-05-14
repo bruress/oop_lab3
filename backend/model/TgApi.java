@@ -65,6 +65,23 @@ public class TgApi extends Api {
         this.botToken = botToken;
         this.chatId = chatId;
     }
+
+    // получить копию списка данных
+    public List<TgPayload> payloadsList() {
+        return new ArrayList<>(payloads);
+    }
+
+    // добавить данные в текущий tg api
+    public TgPayload addPayloadItem(String payloadType, String payloadData) {
+        TgPayload payload = new TgPayload(payloadType, payloadData, this);
+        payloads.add(payload);
+        return payload;
+    }
+
+    // удалить данные по id из текущего tg api
+    public boolean removePayloadById(long payloadId) {
+        return payloads.removeIf(payload -> payload.idValue() != null && payload.idValue() == payloadId);
+    }
     @JsonIgnore
     public List<String> sendMessage() {
         return List.of("хорошего дня!");

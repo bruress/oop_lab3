@@ -49,4 +49,9 @@ public class VkPost {
         this.likes = likes;
         this.vkApi = vkApi;
     }
+
+    // вернуть id поста без классического getId
+    public Long idValue() {
+        return id;
+    }
 }

@@ -1,7 +1,6 @@
 package com.oop.lab3.service;
 import com.oop.lab3.model.VkApi;
 import com.oop.lab3.model.VkPost;
-import com.oop.lab3.repository.VkPostRepository;
 import com.oop.lab3.repository.VkApiRepository;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.stereotype.Service;
@@ -13,16 +12,13 @@ public class VkApiService {
 
     // репозиторий для операций с таблицей vk_apis
     private final VkApiRepository vkApiRepository;
-    // репозиторий для операций с таблицей vk_posts
-    private final VkPostRepository vkPostRepository;
 
     // фабрика entity manager для чтения идентификатора сохраненной сущности
     private final EntityManagerFactory entityManagerFactory;
 
     // конструктор для внедрения repository через Spring DI
-    public VkApiService(VkApiRepository vkApiRepository, VkPostRepository vkPostRepository, EntityManagerFactory entityManagerFactory) {
+    public VkApiService(VkApiRepository vkApiRepository, EntityManagerFactory entityManagerFactory) {
         this.vkApiRepository = vkApiRepository;
-        this.vkPostRepository = vkPostRepository;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -84,7 +80,9 @@ public class VkApiService {
 
     // получить посты конкретного vk api
     public List<VkPost> getPosts(long id) {
-        return vkPostRepository.findByVkApiId(id);
+        Optional<VkApi> apiOptional = vkApiRepository.findById(id);
+        if (apiOptional.isEmpty()) return List.of();
+        return apiOptional.get().postsList();
     }
 
     // добавить пост конкретному vk api
@@ -95,17 +93,24 @@ public class VkApiService {
         if (apiOptional.isEmpty()) return Optional.empty();
         // подставляем безопасный текст, если пришла пустая строка
         String safeText = (text == null || text.isBlank()) ? "пустой пост" : text;
-        // сохраняем пост и привязываем к найденному vk api
-        VkPost saved = vkPostRepository.save(new VkPost(safeText, likes, apiOptional.get()));
+        // добавляем пост в список родителя и сохраняем родителя
+        VkApi api = apiOptional.get();
+        VkPost saved = api.addPostItem(safeText, likes);
+        vkApiRepository.save(api);
         // возвращаем созданный пост
         return Optional.of(saved);
     }
 
     // удалить пост по его id
     public boolean deletePostById(long postId) {
-        if (!vkPostRepository.existsById(postId)) return false;
-        vkPostRepository.deleteById(postId);
-        return true;
+        List<VkApi> all = vkApiRepository.findAll();
+        for (VkApi api : all) {
+            if (api.removePostById(postId)) {
+                vkApiRepository.save(api);
+                return true;
+            }
+        }
+        return false;
     }
 
     // родительская инициализация

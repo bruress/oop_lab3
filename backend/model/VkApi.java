@@ -65,6 +65,23 @@ public class VkApi extends Api {
         this.token = token;
     }
 
+    // получить копию списка постов
+    public List<VkPost> postsList() {
+        return new ArrayList<>(posts);
+    }
+
+    // добавить пост в текущий vk api
+    public VkPost addPostItem(String text, int likes) {
+        VkPost post = new VkPost(text, likes, this);
+        posts.add(post);
+        return post;
+    }
+
+    // удалить пост по id из текущего vk api
+    public boolean removePostById(long postId) {
+        return posts.removeIf(post -> post.idValue() != null && post.idValue() == postId);
+    }
+
     @JsonIgnore
     public List<String> getText() {
         return List.of(

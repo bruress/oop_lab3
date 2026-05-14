@@ -48,4 +48,9 @@ public class TgPayload {
         this.payloadData = payloadData;
         this.tgApi = tgApi;
     }
+
+    // вернуть id данных без классического getId
+    public Long idValue() {
+        return id;
+    }
 }

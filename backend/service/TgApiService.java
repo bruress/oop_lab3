@@ -1,7 +1,6 @@
 package com.oop.lab3.service;
 import com.oop.lab3.model.TgApi;
 import com.oop.lab3.model.TgPayload;
-import com.oop.lab3.repository.TgPayloadRepository;
 import com.oop.lab3.repository.TgApiRepository;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.stereotype.Service;
@@ -13,16 +12,13 @@ public class TgApiService {
 
     // репозиторий для операций с таблицей tg_apis
     private final TgApiRepository tgApiRepository;
-    // репозиторий для операций с таблицей tg_payloads
-    private final TgPayloadRepository tgPayloadRepository;
 
     // фабрика entity manager для чтения идентификатора сохраненной сущности
     private final EntityManagerFactory entityManagerFactory;
 
     // конструктор для внедрения repository через Spring DI
-    public TgApiService(TgApiRepository tgApiRepository, TgPayloadRepository tgPayloadRepository, EntityManagerFactory entityManagerFactory) {
+    public TgApiService(TgApiRepository tgApiRepository, EntityManagerFactory entityManagerFactory) {
         this.tgApiRepository = tgApiRepository;
-        this.tgPayloadRepository = tgPayloadRepository;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -81,7 +77,9 @@ public class TgApiService {
 
     // получить payload конкретного tg api
     public List<TgPayload> getPayloads(long id) {
-        return tgPayloadRepository.findByTgApiId(id);
+        Optional<TgApi> apiOptional = tgApiRepository.findById(id);
+        if (apiOptional.isEmpty()) return List.of();
+        return apiOptional.get().payloadsList();
     }
 
     // добавить payload конкретному tg api
@@ -94,17 +92,24 @@ public class TgApiService {
         String safeType = (payloadType == null || payloadType.isBlank()) ? "message" : payloadType;
         // если данные пустые, ставим безопасное значение
         String safeData = (payloadData == null || payloadData.isBlank()) ? "пусто" : payloadData;
-        // сохраняем запись данных и привязываем к найденному tg api
-        TgPayload saved = tgPayloadRepository.save(new TgPayload(safeType, safeData, apiOptional.get()));
+        // добавляем данные в список родителя и сохраняем родителя
+        TgApi api = apiOptional.get();
+        TgPayload saved = api.addPayloadItem(safeType, safeData);
+        tgApiRepository.save(api);
         // возвращаем созданную запись
         return Optional.of(saved);
     }
 
     // удалить payload по его id
     public boolean deletePayloadById(long payloadId) {
-        if (!tgPayloadRepository.existsById(payloadId)) return false;
-        tgPayloadRepository.deleteById(payloadId);
-        return true;
+        List<TgApi> all = tgApiRepository.findAll();
+        for (TgApi api : all) {
+            if (api.removePayloadById(payloadId)) {
+                tgApiRepository.save(api);
+                return true;
+            }
+        }
+        return false;
     }
 
     // родительская инициализация

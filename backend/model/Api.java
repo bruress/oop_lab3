@@ -47,6 +47,10 @@ public abstract class Api {
         this.name = name;
         this.baseUrl = baseUrl;
     }
+    // привязать api к организации
+    public void bindOrganization(Organization organization) {
+        this.organization = organization;
+    }
     public String initialize() {
         return "Initializing API...";
     }

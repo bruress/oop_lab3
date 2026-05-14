@@ -29,21 +29,28 @@ function App() {
   const [tgPayloadData, setTgPayloadData] = useState('');
   const [vkPostsByApi, setVkPostsByApi] = useState({});
   const [tgPayloadsByApi, setTgPayloadsByApi] = useState({});
+  const [organizations, setOrganizations] = useState([]);
+  const [organizationName, setOrganizationName] = useState('');
+  const [attachOrgId, setAttachOrgId] = useState('');
+  const [attachVkId, setAttachVkId] = useState('');
+  const [attachTgId, setAttachTgId] = useState('');
 
   const API = 'http://localhost:8080/api';
 
   const loadLists = async () => {
     try {
       setError('');
-      const [vkResp, tgResp] = await Promise.all([
+      const [vkResp, tgResp, orgResp] = await Promise.all([
         fetch(`${API}/vkapis`),
-        fetch(`${API}/tgapis`)
+        fetch(`${API}/tgapis`),
+        fetch(`${API}/organizations`)
       ]);
-      if (!vkResp.ok || !tgResp.ok) throw new Error('Не удалось загрузить списки API');
+      if (!vkResp.ok || !tgResp.ok || !orgResp.ok) throw new Error('Не удалось загрузить списки API');
 
-      const [vkData, tgData] = await Promise.all([vkResp.json(), tgResp.json()]);
+      const [vkData, tgData, orgData] = await Promise.all([vkResp.json(), tgResp.json(), orgResp.json()]);
       setVk(Array.isArray(vkData) ? vkData : []);
       setTg(Array.isArray(tgData) ? tgData : []);
+      setOrganizations(Array.isArray(orgData) ? orgData : []);
     } catch (e) {
       setError(e.message || 'Ошибка загрузки');
     }
@@ -90,9 +97,13 @@ function App() {
   useEffect(() => {
     const firstVk = vk.find((x) => x?.id !== undefined && x?.id !== null);
     const firstTg = tg.find((x) => x?.id !== undefined && x?.id !== null);
+    const firstOrg = organizations.find((x) => x?.id !== undefined && x?.id !== null);
     setVkPostApiId(firstVk ? String(firstVk.id) : '');
     setTgPayloadApiId(firstTg ? String(firstTg.id) : '');
-  }, [vk, tg]);
+    setAttachVkId(firstVk ? String(firstVk.id) : '');
+    setAttachTgId(firstTg ? String(firstTg.id) : '');
+    setAttachOrgId(firstOrg ? String(firstOrg.id) : '');
+  }, [vk, tg, organizations]);
 
   const addVk = async () => {
     try {
@@ -330,6 +341,57 @@ function App() {
     }
   };
 
+  const addOrganization = async () => {
+    try {
+      setError('');
+      const resp = await fetch(`${API}/organizations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: organizationName })
+      });
+      if (!resp.ok) throw new Error('Не удалось создать организацию');
+      setOrganizationName('');
+      await loadLists();
+    } catch (e) {
+      setError(e.message || 'Ошибка создания организации');
+    }
+  };
+
+  const deleteOrganization = async (id) => {
+    try {
+      setError('');
+      const resp = await fetch(`${API}/organizations/${id}`, { method: 'DELETE' });
+      if (!resp.ok) throw new Error('Не удалось удалить организацию');
+      await loadLists();
+    } catch (e) {
+      setError(e.message || 'Ошибка удаления организации');
+    }
+  };
+
+  const attachVkToOrganization = async () => {
+    if (!attachOrgId || !attachVkId) return;
+    try {
+      setError('');
+      const resp = await fetch(`${API}/organizations/${attachOrgId}/vk/${attachVkId}`, { method: 'POST' });
+      if (!resp.ok) throw new Error('Не удалось привязать VK API');
+      await loadLists();
+    } catch (e) {
+      setError(e.message || 'Ошибка привязки VK API');
+    }
+  };
+
+  const attachTgToOrganization = async () => {
+    if (!attachOrgId || !attachTgId) return;
+    try {
+      setError('');
+      const resp = await fetch(`${API}/organizations/${attachOrgId}/tg/${attachTgId}`, { method: 'POST' });
+      if (!resp.ok) throw new Error('Не удалось привязать TG API');
+      await loadLists();
+    } catch (e) {
+      setError(e.message || 'Ошибка привязки TG API');
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
       <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">Апишечки :3</h1>
@@ -405,6 +467,64 @@ function App() {
           </ul>
         </section>
       </div>
+
+      <section className="rounded-3xl bg-white/85 backdrop-blur border-2 border-brandViolet/20 shadow-[0_12px_30px_rgba(29,78,216,0.15)] p-5 mt-5">
+        <h2 className="text-2xl font-bold mb-3">Организации</h2>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-3">
+          <input
+            className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-6"
+            value={organizationName}
+            onChange={e => setOrganizationName(e.target.value)}
+            placeholder="Название организации"
+          />
+          <button onClick={addOrganization} className="rounded-xl px-4 py-2 font-bold text-white bg-gradient-to-br from-brandViolet to-brandBlue md:col-span-2">Добавить</button>
+          <select className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-2" value={attachOrgId} onChange={e => setAttachOrgId(e.target.value)}>
+            {organizations.map((org) => (
+              <option key={`org-${org.id}`} value={String(org.id)}>ORG ID: {org.id}</option>
+            ))}
+            {organizations.length === 0 && <option value="">Нет организаций</option>}
+          </select>
+          <button onClick={loadLists} className="rounded-xl px-4 py-2 font-bold text-slate-900 bg-gradient-to-br from-amber-400 to-brandYellow md:col-span-2">Обновить</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 border border-slate-200 rounded-2xl p-2">
+            <div className="font-semibold md:col-span-12">Привязать VK API</div>
+            <select className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-8" value={attachVkId} onChange={e => setAttachVkId(e.target.value)}>
+              {vk.filter((item) => item?.id !== undefined && item?.id !== null).map((item) => (
+                <option key={`attach-vk-${item.id}`} value={String(item.id)}>VK ID: {item.id}</option>
+              ))}
+            </select>
+            <button onClick={attachVkToOrganization} className="rounded-xl px-4 py-2 font-bold text-white bg-gradient-to-br from-brandViolet to-brandBlue md:col-span-4">Привязать</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 border border-slate-200 rounded-2xl p-2">
+            <div className="font-semibold md:col-span-12">Привязать TG API</div>
+            <select className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-8" value={attachTgId} onChange={e => setAttachTgId(e.target.value)}>
+              {tg.filter((item) => item?.id !== undefined && item?.id !== null).map((item) => (
+                <option key={`attach-tg-${item.id}`} value={String(item.id)}>TG ID: {item.id}</option>
+              ))}
+            </select>
+            <button onClick={attachTgToOrganization} className="rounded-xl px-4 py-2 font-bold text-white bg-gradient-to-br from-brandViolet to-brandBlue md:col-span-4">Привязать</button>
+          </div>
+        </div>
+        <ul className="list-disc pl-5 space-y-2">
+          {organizations.map((org) => (
+            <li key={`org-line-${org.id}`}>
+              <b>#{org.id}</b> {org.name}{' '}
+              <button onClick={() => deleteOrganization(org.id)} className="ml-2 text-xs text-red-500 border border-red-300 rounded-full px-2">Удалить</button>
+              <div className="text-slate-700 mt-1">
+                API у организации:{' '}
+                {(org.apis || []).length === 0
+                  ? 'нет'
+                  : (org.apis || []).map((api) => {
+                    const kind = api.version !== undefined ? 'VK' : 'TG';
+                    const extra = api.version !== undefined ? `v${api.version}` : `chat ${api.chatId}`;
+                    return `${kind}#${api.id} (${extra})`;
+                  }).join(', ')}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="rounded-3xl bg-white/85 backdrop-blur border-2 border-brandViolet/20 shadow-[0_12px_30px_rgba(29,78,216,0.15)] p-5 mt-5">
         <h2 className="text-2xl font-bold mb-3">Добавление связанных данных</h2>

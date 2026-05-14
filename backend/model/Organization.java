@@ -1,4 +1,5 @@
 package com.oop.lab3.model;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Entity 
 @Table(name = "organizations") 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Organization {
 
     @Id
@@ -35,5 +37,11 @@ public class Organization {
     // конструктор с именем организации
     public Organization(String name) {
         this.name = name;
+    }
+
+    // добавить api в организацию и связать в обе стороны
+    public void addApi(Api api) {
+        this.apis.add(api);
+        api.bindOrganization(this);
     }
 }

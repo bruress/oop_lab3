@@ -145,10 +145,6 @@
         \item \texttt{public VkApi(String version, String token)} --- создаёт VK API с явными \texttt{version} и \texttt{token}, а \texttt{name/baseUrl} задаёт как \texttt{"VK"} и \texttt{"https://api.vk.com/method"};
         \item \texttt{public VkApi(String token)} --- создаёт VK API с токеном и версией по умолчанию \texttt{"5.199"}.
     \end{itemize}
-    \item Дополнительно:
-    \begin{itemize}
-        \item Для обновления полей используется предметный метод \texttt{updateVkData(...)}.
-    \end{itemize}
 \end{itemize}
 
 \textbf{Класс \texttt{TgApi extends Api}:}
@@ -171,11 +167,7 @@
     \begin{itemize}
         \item \texttt{protected TgApi()} --- пустой конструктор для Hibernate;
         \item \texttt{public TgApi(String botToken, long chatId)} --- создаёт Telegram API с токеном и чатом, а \texttt{name/baseUrl} задаёт как \texttt{"TG"} и \texttt{"https://api.telegram.org/bot"};
-        \item \texttt{public TgApi(String botToken)} --- создаёт Telegram API только с токеном, \texttt{chatId} устанавливается в \texttt{0L}.
-    \end{itemize}
-    \item Дополнительно:
-    \begin{itemize}
-        \item Для обновления полей используется предметный метод \texttt{updateTgData(...)}.
+        \item \texttt{public TgApi(String botToken)} --- создаёт Telegram API только с токеном, \texttt{chatId} устанавливается в \texttt{NULL}.
     \end{itemize}
 \end{itemize}
 
@@ -226,6 +218,10 @@
     \begin{itemize}
         \item \texttt{protected Organization()} --- пустой конструктор для Hibernate;
         \item \texttt{public Organization(String name)} --- создаёт организацию с заданным именем.
+    \end{itemize}
+    \item Методы:
+    \begin{itemize}
+        \item \texttt{public void addApi(Api api)} --- привязывает VK/TG API к организации (обновляет связь в обе стороны).
     \end{itemize}
 \end{itemize}
 
@@ -279,7 +275,8 @@
     \item кнопки удаления записей;
     \item блок вызова методов предметной области (\texttt{Initialize}, \texttt{FetchData}, \texttt{run(command)}) через выпадающие списки;
     \item блок отображения результата вызова методов и ошибок;
-    \item кнопку обновления списков записей из БД.
+    \item кнопку обновления списков записей из БД;
+    \item формы добавления организации и подключения к ней API.
 \end{itemize}
 
 \newpage
