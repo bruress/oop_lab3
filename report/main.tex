@@ -236,9 +236,12 @@
 \begin{enumerate}
     \item \texttt{@Entity} --- помечает класс как таблицу в БД;
     \item \texttt{@Table} --- задаёт имя таблицы;
+    \item \texttt{@Id} --- помечает поле как первичный ключ;
+    \item \texttt{@GeneratedValue(strategy = GenerationType.IDENTITY)} --- автоинкремент первичного ключа средствами БД;
     \item \texttt{@Column} --- задаёт имя и ограничения колонки;
     \item \texttt{@OneToMany} --- связь «один-ко-многим» между родительской и дочерними сущностями;
-    \item \texttt{@ManyToOne} --- связь «многие-к-одному» с хранением внешнего ключа.
+    \item \texttt{@ManyToOne} --- связь «многие-к-одному» с хранением внешнего ключа;
+    \item \texttt{@JoinColumn} --- задаёт имя FK-колонки.
 \end{enumerate}
 
 Наследование дочерных элементов реазиловано через \texttt{JOINED}. Таким образм, Hibernate создаёт отдельные таблицы для базового и дочерних классов с общим идентификатором.\\
@@ -287,12 +290,49 @@
     \item \texttt{tg\_api\_id} --- внешний ключ на \texttt{tg\_apis(id)}.
 \end{itemize}
 
-\textbf{Связи между сущностями:}
-\begin{itemize}
-    \item \texttt{Organization 1:N Api};
-    \item \texttt{VkApi 1:N VkPost};
-    \item \texttt{TgApi 1:N TgPayload};
-\end{itemize}
+\newpage
+\clearpage
+
+\subsection*{Связи в моделях:}
+
+\textbf{\texttt{Api -> Organization} (many-to-one):}
+\begin{lstlisting}[language=Java]
+@ManyToOne(optional = true)
+@JoinColumn(name = "organization_id", nullable = true)
+protected Organization organization;
+\end{lstlisting}
+
+\textbf{\texttt{Organization -> Api} (one-to-many):}
+\begin{lstlisting}[language=Java]
+@OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+private List<Api> apis = new ArrayList<>();
+\end{lstlisting}
+
+\textbf{\texttt{VkPost -> VkApi} (many-to-one):}
+\begin{lstlisting}[language=Java]
+@ManyToOne(optional = false)
+@JoinColumn(name = "vk_api_id", nullable = false)
+private VkApi vkApi;
+\end{lstlisting}
+
+\textbf{\texttt{VkApi -> VkPost} (one-to-many):}
+\begin{lstlisting}[language=Java]
+@OneToMany(mappedBy = "vkApi", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<VkPost> posts = new ArrayList<>();
+\end{lstlisting}
+
+\textbf{\texttt{TgPayload -> TgApi} (many-to-one):}
+\begin{lstlisting}[language=Java]
+@ManyToOne(optional = false)
+@JoinColumn(name = "tg_api_id", nullable = false)
+private TgApi tgApi;
+\end{lstlisting}
+
+\textbf{\texttt{TgApi -> TgPayload} (one-to-many):}
+\begin{lstlisting}[language=Java]
+@OneToMany(mappedBy = "tgApi", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<TgPayload> payloads = new ArrayList<>();
+\end{lstlisting}
 
 \subsection*{Spring подключение к PostgreSQL}
 
@@ -309,6 +349,9 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 \end{lstlisting}
+
+\newpage
+\clearpage
 
 Spring Data получает доступ к таблицам через репозитории:
 
