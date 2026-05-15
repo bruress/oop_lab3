@@ -91,7 +91,7 @@
     \item Использование сборщика Maven;
     \item Использование Hibernate для подключения к БД;
     \item \textbf{Требование к БД}: не менее 3-х связанных таблиц в 3-ей нормальной форме. Обязательно хотя бы одна связь не по наследованию;
-    \item Веб-интерфейс;
+    \item Веб-интерфейс.
 \end{enumerate}
 
 \newpage
@@ -101,129 +101,233 @@
 
 \subsection*{Описание классов предметной области}
 
-\textbf{Базовый абстрактный класс \texttt{Api}:}
+\begin{enumerate}
+    \item \textbf{Базовый абстрактный класс \texttt{Api}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public abstract class Api};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private Long id} --- первичный ключ;
+            \item \texttt{protected String name} --- название API-подключения;
+            \item \texttt{protected String baseUrl} --- базовый URL;
+            \item \texttt{protected Organization organization} --- ссылка на организацию (many-to-one).
+        \end{itemize}
+        \item Методы:
+        \begin{itemize}
+            \item \texttt{public String initialize()} --- возвращает строку \texttt{"Initializing API..."};
+            \item \texttt{public String fetchData(String command)} --- базовая реализация, возвращает строку \texttt{"Загрузка данных..."}; в потомках может переопределяться для предметной команды.
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected Api()} --- пустой конструктор для Hibernate;
+            \item \texttt{protected Api(String name, String baseUrl)} --- инициализирует родительские поля \texttt{name} и \texttt{baseUrl}.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Класс \texttt{VkApi extends Api}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public class VkApi extends Api};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private String version} --- версия VK API;
+            \item \texttt{private String token} --- токен доступа;
+            \item \texttt{private List<VkPost> posts} --- связанные посты (one-to-many).
+        \end{itemize}
+        \item Методы:
+        \begin{itemize}
+            \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями VK (\texttt{name}, \texttt{baseUrl}, \texttt{version}, \texttt{token});
+            \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
+            \item \texttt{public List<String> getText()} --- возвращает список текстов постов;
+            \item \texttt{public List<Integer> getLike()} --- возвращает список значений лайков.
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected VkApi()} --- пустой конструктор для Hibernate;
+            \item \texttt{public VkApi(String version, String token)} --- создаёт VK API с явными \texttt{version} и \texttt{token}, а \texttt{name/baseUrl} задаёт как \texttt{"VK"} и \texttt{"https://api.vk.com/method"};
+            \item \texttt{public VkApi(String token)} --- создаёт VK API с токеном и версией по умолчанию \texttt{"5.199"}.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Класс \texttt{TgApi extends Api}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public class TgApi extends Api};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private String botToken} --- токен бота;
+            \item \texttt{private long chatId} --- идентификатор чата;
+            \item \texttt{private List<TgPayload> payloads} --- связанные данные сообщений (one-to-many).
+        \end{itemize}
+        \item Методы:
+        \begin{itemize}
+            \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями TG (\texttt{name}, \texttt{baseUrl}, \texttt{botToken}, \texttt{chatId});
+            \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
+            \item \texttt{public List<String> sendMessage()} --- возвращает тестовые данные отправки сообщения;
+            \item \texttt{public List<String> sendPhoto()} --- возвращает тестовые данные отправки фото.
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected TgApi()} --- пустой конструктор для Hibernate;
+            \item \texttt{public TgApi(String botToken, long chatId)} --- создаёт Telegram API с токеном и чатом, а \texttt{name/baseUrl} задаёт как \texttt{"TG"} и \texttt{"https://api.telegram.org/bot"};
+            \item \texttt{public TgApi(String botToken)} --- создаёт Telegram API только с токеном, \texttt{chatId} устанавливается в \texttt{NULL}.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Класс \texttt{VkPost}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public class VkPost};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private Long id} --- идентификатор поста;
+            \item \texttt{private String text} --- текст поста;
+            \item \texttt{private int likes} --- количество лайков;
+            \item \texttt{private VkApi vkApi} --- ссылка на родительский VK API (many-to-one).
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected VkPost()} --- пустой конструктор для Hibernate;
+            \item \texttt{public VkPost(String text, int likes, VkApi vkApi)} --- создаёт пост и привязывает его к VK API.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Класс \texttt{TgPayload}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public class TgPayload};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private Long id} --- идентификатор записи данных;
+            \item \texttt{private String payloadType} --- тип данных (\texttt{message}/\texttt{photo});
+            \item \texttt{private String payloadData} --- содержимое данных;
+            \item \texttt{private TgApi tgApi} --- ссылка на родительский TG API (many-to-one).
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected TgPayload()} --- пустой конструктор для Hibernate;
+            \item \texttt{public TgPayload(String payloadType, String payloadData, TgApi tgApi)} --- создаёт запись данных и привязывает её к TG API.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Класс \texttt{Organization}:}
+    \begin{itemize}
+        \item Тип класса и модификатор доступа: \texttt{public class Organization};
+        \item Поля:
+        \begin{itemize}
+            \item \texttt{private Long id} --- идентификатор организации;
+            \item \texttt{private String name} --- название организации;
+            \item \texttt{private List<Api> apis} --- список связанных API-записей (one-to-many).
+        \end{itemize}
+        \item Конструкторы:
+        \begin{itemize}
+            \item \texttt{protected Organization()} --- пустой конструктор для Hibernate;
+            \item \texttt{public Organization(String name)} --- создаёт организацию с заданным именем.
+        \end{itemize}
+        \item Методы:
+        \begin{itemize}
+            \item \texttt{public void addApi(Api api)} --- привязывает VK/TG API к организации (обновляет связь в обе стороны).
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+\newpage
+\clearpage
+
+\subsection*{Модели Hibernate}
+
+Для хранения данных используются аннотации:
+\begin{enumerate}
+    \item \texttt{@Entity} --- помечает класс как таблицу в БД;
+    \item \texttt{@Table} --- задаёт имя таблицы;
+    \item \texttt{@Column} --- задаёт имя и ограничения колонки;
+    \item \texttt{@OneToMany} --- связь «один-ко-многим» между родительской и дочерними сущностями;
+    \item \texttt{@ManyToOne} --- связь «многие-к-одному» с хранением внешнего ключа.
+\end{enumerate}
+
+Наследование дочерных элементов реазиловано через \texttt{JOINED}. Таким образм, Hibernate создаёт отдельные таблицы для базового и дочерних классов с общим идентификатором.\\
+
+\textbf{Таблица \texttt{organizations}:}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public abstract class Api};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private Long id} --- первичный ключ;
-        \item \texttt{protected String name} --- название API-подключения;
-        \item \texttt{protected String baseUrl} --- базовый URL;
-        \item \texttt{protected Organization organization} --- ссылка на организацию (many-to-one).
-    \end{itemize}
-    \item Методы:
-    \begin{itemize}
-        \item \texttt{public String initialize()} --- возвращает строку \texttt{"Initializing API..."};
-        \item \texttt{public String fetchData(String command)} --- базовая реализация, возвращает строку \texttt{"Загрузка данных..."}; в потомках может переопределяться для предметной команды.
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected Api()} --- пустой конструктор для Hibernate;
-        \item \texttt{protected Api(String name, String baseUrl)} --- инициализирует родительские поля \texttt{name} и \texttt{baseUrl}.
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ (\texttt{BIGSERIAL}, \texttt{IDENTITY});
+    \item \texttt{name} --- \texttt{VARCHAR(150) NOT NULL}.
 \end{itemize}
 
-\textbf{Класс \texttt{VkApi extends Api}:}
+\textbf{Таблица \texttt{apis} (базовая сущность \texttt{Api}):}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public class VkApi extends Api};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private String version} --- версия VK API;
-        \item \texttt{private String token} --- токен доступа;
-        \item \texttt{private List<VkPost> posts} --- связанные посты (one-to-many).
-    \end{itemize}
-    \item Методы:
-    \begin{itemize}
-        \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями VK (\texttt{name}, \texttt{baseUrl}, \texttt{version}, \texttt{token});
-        \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
-        \item \texttt{public List<String> getText()} --- возвращает список текстов постов;
-        \item \texttt{public List<Integer> getLike()} --- возвращает список значений лайков.
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected VkApi()} --- пустой конструктор для Hibernate;
-        \item \texttt{public VkApi(String version, String token)} --- создаёт VK API с явными \texttt{version} и \texttt{token}, а \texttt{name/baseUrl} задаёт как \texttt{"VK"} и \texttt{"https://api.vk.com/method"};
-        \item \texttt{public VkApi(String token)} --- создаёт VK API с токеном и версией по умолчанию \texttt{"5.199"}.
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ;
+    \item \texttt{name} --- \texttt{VARCHAR(100) NOT NULL};
+    \item \texttt{base\_url} --- \texttt{VARCHAR(255) NOT NULL};
+    \item \texttt{organization\_id} --- внешний ключ на \texttt{organizations(id)}.
 \end{itemize}
 
-\textbf{Класс \texttt{TgApi extends Api}:}
+\textbf{Таблица \texttt{vk\_apis} (дочерняя к \texttt{apis}):}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public class TgApi extends Api};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private String botToken} --- токен бота;
-        \item \texttt{private long chatId} --- идентификатор чата;
-        \item \texttt{private List<TgPayload> payloads} --- связанные данные сообщений (one-to-many).
-    \end{itemize}
-    \item Методы:
-    \begin{itemize}
-        \item \texttt{public String initialize()} --- переопределённый метод инициализации, возвращает строку с полями TG (\texttt{name}, \texttt{baseUrl}, \texttt{botToken}, \texttt{chatId});
-        \item \texttt{public String fetchData(String command)} --- обобщённый вызов команды для демонстрации полиморфного доступа;
-        \item \texttt{public List<String> sendMessage()} --- возвращает тестовые данные отправки сообщения;
-        \item \texttt{public List<String> sendPhoto()} --- возвращает тестовые данные отправки фото.
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected TgApi()} --- пустой конструктор для Hibernate;
-        \item \texttt{public TgApi(String botToken, long chatId)} --- создаёт Telegram API с токеном и чатом, а \texttt{name/baseUrl} задаёт как \texttt{"TG"} и \texttt{"https://api.telegram.org/bot"};
-        \item \texttt{public TgApi(String botToken)} --- создаёт Telegram API только с токеном, \texttt{chatId} устанавливается в \texttt{NULL}.
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ и внешний ключ на \texttt{apis(id)};
+    \item \texttt{version} --- \texttt{VARCHAR(50) NOT NULL};
+    \item \texttt{token} --- \texttt{VARCHAR(255) NOT NULL}.
 \end{itemize}
 
-\textbf{Класс \texttt{VkPost}:}
+\textbf{Таблица \texttt{tg\_apis} (дочерняя к \texttt{apis}):}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public class VkPost};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private Long id} --- идентификатор поста;
-        \item \texttt{private String text} --- текст поста;
-        \item \texttt{private int likes} --- количество лайков;
-        \item \texttt{private VkApi vkApi} --- ссылка на родительский VK API (many-to-one).
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected VkPost()} --- пустой конструктор для Hibernate;
-        \item \texttt{public VkPost(String text, int likes, VkApi vkApi)} --- создаёт пост и привязывает его к VK API.
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ и внешний ключ на \texttt{apis(id)};
+    \item \texttt{bot\_token} --- \texttt{VARCHAR(255) NOT NULL};
+    \item \texttt{chat\_id} --- \texttt{BIGINT NOT NULL}.
 \end{itemize}
 
-\textbf{Класс \texttt{TgPayload}:}
+\textbf{Таблица \texttt{vk\_posts}:}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public class TgPayload};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private Long id} --- идентификатор записи данных;
-        \item \texttt{private String payloadType} --- тип данных (\texttt{message}/\texttt{photo});
-        \item \texttt{private String payloadData} --- содержимое данных;
-        \item \texttt{private TgApi tgApi} --- ссылка на родительский TG API (many-to-one).
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected TgPayload()} --- пустой конструктор для Hibernate;
-        \item \texttt{public TgPayload(String payloadType, String payloadData, TgApi tgApi)} --- создаёт запись данных и привязывает её к TG API.
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ;
+    \item \texttt{text} --- \texttt{VARCHAR(1000) NOT NULL};
+    \item \texttt{likes} --- \texttt{INTEGER NOT NULL};
+    \item \texttt{vk\_api\_id} --- внешний ключ на \texttt{vk\_apis(id)}.
 \end{itemize}
 
-\textbf{Класс \texttt{Organization}:}
+\textbf{Таблица \texttt{tg\_payloads}:}
 \begin{itemize}
-    \item Тип класса и модификатор доступа: \texttt{public class Organization};
-    \item Поля:
-    \begin{itemize}
-        \item \texttt{private Long id} --- идентификатор организации;
-        \item \texttt{private String name} --- название организации;
-        \item \texttt{private List<Api> apis} --- список связанных API-записей (one-to-many).
-    \end{itemize}
-    \item Конструкторы:
-    \begin{itemize}
-        \item \texttt{protected Organization()} --- пустой конструктор для Hibernate;
-        \item \texttt{public Organization(String name)} --- создаёт организацию с заданным именем.
-    \end{itemize}
-    \item Методы:
-    \begin{itemize}
-        \item \texttt{public void addApi(Api api)} --- привязывает VK/TG API к организации (обновляет связь в обе стороны).
-    \end{itemize}
+    \item \texttt{id} --- первичный ключ;
+    \item \texttt{payload\_type} --- \texttt{VARCHAR(255) NOT NULL};
+    \item \texttt{payload\_data} --- \texttt{VARCHAR(1500) NOT NULL};
+    \item \texttt{tg\_api\_id} --- внешний ключ на \texttt{tg\_apis(id)}.
 \end{itemize}
+
+\textbf{Связи между сущностями:}
+\begin{itemize}
+    \item \texttt{Organization 1:N Api};
+    \item \texttt{VkApi 1:N VkPost};
+    \item \texttt{TgApi 1:N TgPayload};
+\end{itemize}
+
+\subsection*{Spring подключение к PostgreSQL}
+
+Подключение и параметры Hibernate задаются в файле \texttt{application.properties}:
+
+\begin{lstlisting}[language={}]
+spring.datasource.url=jdbc:postgresql://localhost:5432/lab3_oop
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+\end{lstlisting}
+
+Spring Data получает доступ к таблицам через репозитории:
+
+\begin{lstlisting}[language=Java]
+public interface VkApiRepository extends JpaRepository<VkApi, Long> {}
+public interface TgApiRepository extends JpaRepository<TgApi, Long> {}
+public interface OrganizationRepository extends JpaRepository<Organization, Long> {}
+\end{lstlisting}
+
+\subsection*{Примеры запросов}
+
+\textbf{Базовые JPA-операции, используемые в сервисах:}
+\begin{lstlisting}[language=Java]
+vkApiRepository.findAll();
+vkApiRepository.findById(id);
+vkApiRepository.save(new VkApi("5.199", token));
+vkApiRepository.deleteById(id);
+organizationRepository.save(org);
+\end{lstlisting}
 
 \newpage
 \clearpage

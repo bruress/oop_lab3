@@ -1,9 +1,9 @@
 # Fdb version 4
-["pdflatex"] 1778779426.52126 "/home/valerka/university/oop/lab_3/report/main.tex" "main.pdf" "main" 1778779427.32307 0
+["pdflatex"] 1778828315.28073 "/home/valerka/university/oop/lab_3/report/main.tex" "main.pdf" "main" 1778828316.56836 0
   "/home/valerka/.texlive/texmf-var/fonts/tfm/lh/lh-t2a/labx1440.tfm" 1773072464.82105 3304 6a543c07045572737981351171e0505e ""
   "/home/valerka/.texlive/texmf-var/fonts/tfm/lh/lh-t2a/larm1440.tfm" 1773072462.79631 3256 3daaa33cf35cf3f354983aa3214ecd7f ""
   "/home/valerka/.texlive/texmf-var/fonts/tfm/lh/lh-t2a/latt1095.tfm" 1773093438.42845 1276 e8f51803ab84b07f08acd5c6da2228c8 ""
-  "/home/valerka/university/oop/lab_3/report/main.tex" 1778779425.71062 18581 1cb219aefd1dc5c2db1da41b76f43969 ""
+  "/home/valerka/university/oop/lab_3/report/main.tex" 1778828315.20873 23691 56470878b5a17e1b96c3814bb5300702 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t2a.enc" 1775415801 3141 82d5616418ed8d5de703b3951bedecb4 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1775415801 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1775415801 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -103,9 +103,9 @@
   "2.png" 1778778748.33525 37367 3b07d0ff2b577c55f2dee81401f70f2e ""
   "3.png" 1778778783.8472 28944 18dbbfe5b637c6748b96c75efa38e108 ""
   "4.png" 1778778812.89146 38684 e876b477f9988eee6e05da5a9a84cd32 ""
-  "main.aux" 1778779427.24406 301 81542451a8b2541a6e37150f960bf1a6 "pdflatex"
-  "main.out" 1778779426.9194 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main.tex" 1778779425.71062 18581 1cb219aefd1dc5c2db1da41b76f43969 ""
+  "main.aux" 1778828316.42019 301 4c6d3deb8baea3b3a93ce3c1d382ad05 "pdflatex"
+  "main.out" 1778828315.87862 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main.tex" 1778828315.20873 23691 56470878b5a17e1b96c3814bb5300702 ""
   (generated)
   "main.aux"
   "main.log"
